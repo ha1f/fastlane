@@ -69,11 +69,14 @@ module Fastlane
           Pathname.new(File.expand_path(File.join(xcodeproj_path, '..', info_plist_path))).relative_path_from(repo_pathname).to_s
         end
 
-        # Removes .plist files that matched the given expression in the 'ignore' parameter
+        internal_changed_files = info_plist_files
+        internal_changed_files << pbxproj_path
+
+        # Removes .plist or .pbxproj files that matched the given expression in the 'ignore' parameter
         ignore_expression = params[:ignore]
         if ignore_expression
-          info_plist_files.reject! do |info_plist_file|
-            info_plist_file.match(ignore_expression)
+          internal_changed_files.reject! do |internal_changed_file|
+            internal_changed_file.match(ignore_expression)
           end
         end
 
@@ -82,8 +85,7 @@ module Fastlane
 
         # create our list of files that we expect to have changed, they should all be relative to the project root, which should be equal to the git workdir root
         expected_changed_files = extra_files
-        expected_changed_files << pbxproj_path
-        expected_changed_files << info_plist_files
+        expected_changed_files << internal_changed_files
 
         if params[:settings]
           settings_plists_from_param(params[:settings]).each do |file|
